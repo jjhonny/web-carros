@@ -1,10 +1,14 @@
+import { useEffect } from "react";
 import logoImg from "../../assets/logo.svg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Container } from "../../components/container";
 import { Input } from "../../components/input";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+import { auth } from "../../services/firebaseConnection";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 const schema = z.object({
   email: z
@@ -17,6 +21,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function Login() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -26,8 +31,24 @@ export function Login() {
     mode: "onChange",
   });
 
-  function onSubmit(data: FormData) {
-    console.log(data);
+  useEffect(() => {
+    async function handleLogout() {
+      await signOut(auth);
+    }
+
+    handleLogout();
+  }, []);
+
+  async function handleLogin(data: FormData) {
+    signInWithEmailAndPassword(auth, data.email, data.password)
+      .then(() => {
+        console.log("Logado com sucesso!");
+        navigate("/dashboard", { replace: true });
+      })
+      .catch((error) => {
+        console.log("Erro ao logar");
+        console.log(error);
+      });
   }
 
   return (
@@ -39,7 +60,7 @@ export function Login() {
           </Link>
           <form
             className="bg-white max-w-xl w-full rounded-lg p-4"
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={handleSubmit(handleLogin)}
           >
             <div className="mb-3">
               <Input

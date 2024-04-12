@@ -7,7 +7,12 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { auth } from "../../services/firebaseConnection";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
+import { useEffect } from "react";
 
 const schema = z.object({
   fullname: z.string().min(6, "O campo nome completo é obrigatório"),
@@ -34,7 +39,15 @@ export function Register() {
     mode: "onChange",
   });
 
-  async function onSubmit(data: FormData) {
+  useEffect(() => {
+    async function handleLogout() {
+      await signOut(auth);
+    }
+
+    handleLogout();
+  }, []);
+
+  async function handleRegister(data: FormData) {
     createUserWithEmailAndPassword(auth, data.email, data.password)
       .then(async (user) => {
         await updateProfile(user.user, {
@@ -58,7 +71,7 @@ export function Register() {
           </Link>
           <form
             className="bg-white max-w-xl w-full rounded-lg p-4"
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={handleSubmit(handleRegister)}
           >
             <div className="mb-3">
               <Input
