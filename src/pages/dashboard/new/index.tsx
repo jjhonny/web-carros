@@ -1,7 +1,7 @@
 import { ChangeEvent, useState, useContext } from "react";
 import { Container } from "../../../components/container";
 import { DashboardHeader } from "../../../components/panelheader";
-import { FiUpload } from "react-icons/fi";
+import { FiTrash, FiUpload } from "react-icons/fi";
 import { useForm } from "react-hook-form";
 import { Input } from "../../../components/input";
 import { z } from "zod";
@@ -85,6 +85,18 @@ export function New() {
     console.log(data)
   }
 
+  async function handleDeleteImage(item: ImageItemProps) {
+    const imagePath = `images/${item.uid}/${item.name}`
+    const imageRef = ref(storage, imagePath);
+
+    try {
+      await deleteObject(imageRef)
+      setCarImages(carImages.filter((car) => car.url !== item.url))
+    } catch (error) {
+      console.log("Erro ao deletar!!", error)
+    }
+  }
+
   return (
     <>
       <Container>
@@ -105,6 +117,9 @@ export function New() {
           </button>
           {carImages.map((item) => (
             <div key={item.name} className="w-full h-32 flex items-center justify-center relative">
+              <button className="absolute" onClick={() => handleDeleteImage(item)}>
+                <FiTrash size={28} color="white" />
+              </button>
               <img
                 className="rounded-lg w-full h-32 object-cover"
                 src={item.previewUrl}
