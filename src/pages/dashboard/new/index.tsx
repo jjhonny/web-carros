@@ -9,8 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthContext } from "../../../context/AuthContext";
 import { v4 as uuidV4 } from "uuid";
 
-import { storage } from "../../../services/firebaseConnection";
+import { storage, db } from "../../../services/firebaseConnection";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { addDoc, collection } from "firebase/firestore"
 
 
 const schema = z.object({
@@ -82,7 +83,42 @@ export function New() {
   }
 
   function onSubmit(data: FormData) {
-    console.log(data)
+    if (carImages.length === 0) {
+      alert("Envie alguma imagem deste carro!!");
+      return;
+    }
+
+    const carListImages = carImages.map((car) => {
+      return {
+        uid: car.uid,
+        name: car.name,
+        url: car.url
+      }
+    })
+
+    addDoc(collection(db, "cars"), {
+      name: data.name,
+      model: data.model,
+      whatsapp: data.whatsapp,
+      city: data.city,
+      year: data.year,
+      km: data.km,
+      price: data.price,
+      description: data.description,
+      created: new Date(),
+      owner: user?.name,
+      uid: user?.uid,
+      images: carListImages,
+    })
+      .then(() => {
+        reset();
+        setCarImages([]);
+        console.log("Cadastrado com sucesso!!");
+      })
+      .catch((error) => {
+        console.log("Erro ao cadastrar no banco!!");
+        console.log(error);
+      })
   }
 
   async function handleDeleteImage(item: ImageItemProps) {
