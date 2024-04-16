@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Container } from "../../components/container";
 import { Link } from "react-router-dom";
-import { collection, query, getDocs, orderBy, } from "firebase/firestore";
+import { collection, query, getDocs, orderBy } from "firebase/firestore";
 import { db } from "../../services/firebaseConnection";
 
 interface CarsProps {
@@ -27,34 +27,33 @@ export function Home() {
 
   useEffect(() => {
     function loadCars() {
-      const carsRef = collection(db, "cars")
-      const queryRef = query(carsRef, orderBy("created", "desc"))
+      const carsRef = collection(db, "cars");
+      const queryRef = query(carsRef, orderBy("created", "desc"));
 
-      getDocs(queryRef)
-        .then((snapshot) => {
-          let listcars = [] as CarsProps[];
+      getDocs(queryRef).then((snapshot) => {
+        let listcars = [] as CarsProps[];
 
-          snapshot.forEach((doc) => {
-            listcars.push({
-              id: doc.id,
-              name: doc.data().name,
-              year: doc.data().year,
-              km: doc.data().km,
-              city: doc.data().city,
-              price: doc.data().price,
-              images: doc.data().images,
-              uid: doc.data().uid
-            })
-          })
-          setCars(listcars)
-        })
+        snapshot.forEach((doc) => {
+          listcars.push({
+            id: doc.id,
+            name: doc.data().name,
+            year: doc.data().year,
+            km: doc.data().km,
+            city: doc.data().city,
+            price: doc.data().price,
+            images: doc.data().images,
+            uid: doc.data().uid,
+          });
+        });
+        setCars(listcars);
+      });
     }
 
     loadCars();
-  }, [])
+  }, []);
 
   function handleImageLoad(id: string) {
-    setLoadImages((prevImageLoaded) => [...prevImageLoaded, id])
+    setLoadImages((prevImageLoaded) => [...prevImageLoaded, id]);
   }
 
   return (
@@ -81,19 +80,24 @@ export function Home() {
               <section className="w-full bg-white rounded-lg hover:scale-105 transition-all">
                 <div
                   className="w-full h-72 rounded-lg bg-slate-200"
-                  style={{ display: loadImages.includes(car.id) ? "none" : "block" }}
-                >
-                </div>
+                  style={{
+                    display: loadImages.includes(car.id) ? "none" : "block",
+                  }}
+                ></div>
                 <img
                   className="w-full rounded-tl-lg rounded-tr-lg mb-2 max-h-72 object-cover"
                   src={car.images[0].url}
                   alt={car.name}
                   onLoad={() => handleImageLoad(car.id)}
-                  style={{ display: loadImages.includes(car.id) ? "block" : "none" }}
+                  style={{
+                    display: loadImages.includes(car.id) ? "block" : "none",
+                  }}
                 />
                 <p className="font-bold my-2 px-2">{car.name}</p>
                 <div className="flex flex-col px-2">
-                  <span className="text-zinc-700 mb-5">{car.year} • {car.km} km</span>
+                  <span className="text-zinc-700 mb-5">
+                    {car.year} • {car.km} km
+                  </span>
                   <strong className="text-black font-medium text-xl">
                     R$ {car.price}
                   </strong>
