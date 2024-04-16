@@ -10,9 +10,13 @@ import { AuthContext } from "../../../context/AuthContext";
 import { v4 as uuidV4 } from "uuid";
 
 import { storage, db } from "../../../services/firebaseConnection";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-import { addDoc, collection } from "firebase/firestore"
-
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
+import { addDoc, collection } from "firebase/firestore";
 
 const schema = z.object({
   name: z.string().min(1, "O nome do carro é obrigatório"),
@@ -21,11 +25,14 @@ const schema = z.object({
   km: z.string().min(1, "O km do carro é obrigatório"),
   price: z.string().min(1, "O preço do carro é obrigatório"),
   city: z.string().min(1, "A cidade é obrigatória"),
-  whatsapp: z.string().min(1, "O telefone é obrigatório").refine((value) => /^(\d{11,12})$/.test(value), {
-    message: "Número de telefone invalido."
-  }),
-  description: z.string().min(1, "A descrição é obrigatória")
-})
+  whatsapp: z
+    .string()
+    .min(1, "O telefone é obrigatório")
+    .refine((value) => /^(\d{11,12})$/.test(value), {
+      message: "Número de telefone invalido.",
+    }),
+  description: z.string().min(1, "A descrição é obrigatória"),
+});
 
 type FormData = z.infer<typeof schema>;
 
@@ -36,19 +43,23 @@ interface ImageItemProps {
   url: string;
 }
 
-
 export function New() {
   const { user } = useContext(AuthContext);
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
-    mode: "onChange"
+    mode: "onChange",
   });
 
-  const [carImages, setCarImages] = useState<ImageItemProps[]>([])
+  const [carImages, setCarImages] = useState<ImageItemProps[]>([]);
 
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files[0]) {
-      const image = e.target.files[0]
+      const image = e.target.files[0];
 
       if (image.type === "image/jpeg" || image.type === "image/png") {
         await handleUpload(image);
@@ -66,20 +77,19 @@ export function New() {
 
     const currentUid = user?.uid;
     const uidImage = uuidV4();
-    const uploadRef = ref(storage, `images/${currentUid}/${uidImage}`)
-    uploadBytes(uploadRef, image)
-      .then((snapshot) => {
-        getDownloadURL(snapshot.ref).then((downloadUrl) => {
-          const imageItem = {
-            name: uidImage,
-            uid: currentUid,
-            previewUrl: URL.createObjectURL(image),
-            url: downloadUrl,
-          }
+    const uploadRef = ref(storage, `images/${currentUid}/${uidImage}`);
+    uploadBytes(uploadRef, image).then((snapshot) => {
+      getDownloadURL(snapshot.ref).then((downloadUrl) => {
+        const imageItem = {
+          name: uidImage,
+          uid: currentUid,
+          previewUrl: URL.createObjectURL(image),
+          url: downloadUrl,
+        };
 
-          setCarImages((images) => [...images, imageItem])
-        })
-      })
+        setCarImages((images) => [...images, imageItem]);
+      });
+    });
   }
 
   function onSubmit(data: FormData) {
@@ -92,12 +102,12 @@ export function New() {
       return {
         uid: car.uid,
         name: car.name,
-        url: car.url
-      }
-    })
+        url: car.url,
+      };
+    });
 
     addDoc(collection(db, "cars"), {
-      name: data.name,
+      name: data.name.toUpperCase(),
       model: data.model,
       whatsapp: data.whatsapp,
       city: data.city,
@@ -118,18 +128,18 @@ export function New() {
       .catch((error) => {
         console.log("Erro ao cadastrar no banco!!");
         console.log(error);
-      })
+      });
   }
 
   async function handleDeleteImage(item: ImageItemProps) {
-    const imagePath = `images/${item.uid}/${item.name}`
+    const imagePath = `images/${item.uid}/${item.name}`;
     const imageRef = ref(storage, imagePath);
 
     try {
-      await deleteObject(imageRef)
-      setCarImages(carImages.filter((car) => car.url !== item.url))
+      await deleteObject(imageRef);
+      setCarImages(carImages.filter((car) => car.url !== item.url));
     } catch (error) {
-      console.log("Erro ao deletar!!", error)
+      console.log("Erro ao deletar!!", error);
     }
   }
 
@@ -152,8 +162,14 @@ export function New() {
             </div>
           </button>
           {carImages.map((item) => (
-            <div key={item.name} className="w-full h-32 flex items-center justify-center relative">
-              <button className="absolute" onClick={() => handleDeleteImage(item)}>
+            <div
+              key={item.name}
+              className="w-full h-32 flex items-center justify-center relative"
+            >
+              <button
+                className="absolute"
+                onClick={() => handleDeleteImage(item)}
+              >
                 <FiTrash size={28} color="white" />
               </button>
               <img
@@ -247,11 +263,19 @@ export function New() {
                 id="description"
                 placeholder="Digite a descrição completa do carro"
               />
-              {errors.description && <p className="mb-1 text-red-500">{errors.description.message}</p>}
+              {errors.description && (
+                <p className="mb-1 text-red-500">
+                  {errors.description.message}
+                </p>
+              )}
             </div>
 
-
-            <button type="submit" className="w-full h-11 rounded-md bg-zinc-900 text-white font-medium">Cadastrar</button>
+            <button
+              type="submit"
+              className="w-full h-11 rounded-md bg-zinc-900 text-white font-medium"
+            >
+              Cadastrar
+            </button>
           </form>
         </div>
       </Container>
