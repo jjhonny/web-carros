@@ -14,6 +14,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { AuthContext } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const schema = z.object({
   fullname: z.string().min(6, "O campo nome completo é obrigatório"),
@@ -60,7 +61,7 @@ export function Register() {
           email: data.email,
           uid: user.user.uid,
         });
-        console.log("Cadastrado com sucesso!");
+        toast.success("Conta cadastrada com sucesso!");
         navigate("/dashboard", { replace: true });
       })
       .catch((error) => {
